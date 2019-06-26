@@ -155,13 +155,13 @@ spv_result_t ShiftIdsInModules(const MessageConsumer& consumer,
   spv_position_t position = {};
 
   if (modules == nullptr)
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
            << "|modules| of ShiftIdsInModules should not be null.";
   if (modules->empty())
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
            << "|modules| of ShiftIdsInModules should not be empty.";
   if (max_id_bound == nullptr)
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
            << "|max_id_bound| of ShiftIdsInModules should not be null.";
 
   uint32_t id_bound = modules->front()->IdBound() - 1u;
@@ -173,7 +173,7 @@ spv_result_t ShiftIdsInModules(const MessageConsumer& consumer,
     });
     id_bound += module->IdBound() - 1u;
     if (id_bound > 0x3FFFFF)
-      return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_ID)
+      DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_ID)
              << "The limit of IDs, 4194303, was exceeded:"
              << " " << id_bound << " is the current ID bound.";
 
@@ -182,7 +182,7 @@ spv_result_t ShiftIdsInModules(const MessageConsumer& consumer,
   }
   ++id_bound;
   if (id_bound > 0x3FFFFF)
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_ID)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_ID)
            << "The limit of IDs, 4194303, was exceeded:"
            << " " << id_bound << " is the current ID bound.";
 
@@ -197,10 +197,10 @@ spv_result_t GenerateHeader(const MessageConsumer& consumer,
   spv_position_t position = {};
 
   if (modules.empty())
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
            << "|modules| of GenerateHeader should not be empty.";
   if (max_id_bound == 0u)
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
            << "|max_id_bound| of GenerateHeader should not be null.";
 
   uint32_t version = 0u;
@@ -223,7 +223,7 @@ spv_result_t MergeModules(const MessageConsumer& consumer,
   spv_position_t position = {};
 
   if (linked_context == nullptr)
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
            << "|linked_module| of MergeModules should not be null.";
   Module* linked_module = linked_context->module();
 
@@ -261,7 +261,7 @@ spv_result_t MergeModules(const MessageConsumer& consumer,
         grammar.lookupOperand(SPV_OPERAND_TYPE_ADDRESSING_MODEL,
                               memory_model_inst->GetSingleWordOperand(0u),
                               &current_desc);
-        return DiagnosticStream(position, consumer, "", SPV_ERROR_INTERNAL)
+        DiagnosticStream(position, consumer, "", SPV_ERROR_INTERNAL)
                << "Conflicting addressing models: " << initial_desc->name
                << " vs " << current_desc->name << ".";
       }
@@ -272,7 +272,7 @@ spv_result_t MergeModules(const MessageConsumer& consumer,
         grammar.lookupOperand(SPV_OPERAND_TYPE_MEMORY_MODEL,
                               memory_model_inst->GetSingleWordOperand(1u),
                               &current_desc);
-        return DiagnosticStream(position, consumer, "", SPV_ERROR_INTERNAL)
+        DiagnosticStream(position, consumer, "", SPV_ERROR_INTERNAL)
                << "Conflicting memory models: " << initial_desc->name << " vs "
                << current_desc->name << ".";
       }
@@ -297,7 +297,7 @@ spv_result_t MergeModules(const MessageConsumer& consumer,
       if (i != entry_points.end()) {
         spv_operand_desc desc = nullptr;
         grammar.lookupOperand(SPV_OPERAND_TYPE_EXECUTION_MODEL, model, &desc);
-        return DiagnosticStream(position, consumer, "", SPV_ERROR_INTERNAL)
+        DiagnosticStream(position, consumer, "", SPV_ERROR_INTERNAL)
                << "The entry point \"" << name << "\", with execution model "
                << desc->name << ", was already defined.";
       }
@@ -357,7 +357,7 @@ spv_result_t MergeModules(const MessageConsumer& consumer,
     }
   }
   if (num_global_values > 0xFFFF)
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INTERNAL)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INTERNAL)
            << "The limit of global values, 65535, was exceeded;"
            << " " << num_global_values << " global values were found.";
 
@@ -381,7 +381,7 @@ spv_result_t GetImportExportPairs(const MessageConsumer& consumer,
   spv_position_t position = {};
 
   if (linkings_to_do == nullptr)
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
            << "|linkings_to_do| of GetImportExportPairs should not be empty.";
 
   std::vector<LinkageSymbolInfo> imports;
@@ -420,7 +420,7 @@ spv_result_t GetImportExportPairs(const MessageConsumer& consumer,
     // types.
     const Instruction* def_inst = def_use_manager.GetDef(id);
     if (def_inst == nullptr)
-      return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
+      DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
              << "ID " << id << " is never defined:\n";
 
     if (def_inst->opcode() == SpvOpVariable) {
@@ -438,7 +438,7 @@ spv_result_t GetImportExportPairs(const MessageConsumer& consumer,
         });
       }
     } else {
-      return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
+      DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
              << "Only global variables and functions can be decorated using"
              << " LinkageAttributes; " << id << " is neither of them.\n";
     }
@@ -455,10 +455,10 @@ spv_result_t GetImportExportPairs(const MessageConsumer& consumer,
     const auto& exp = exports.find(import.name);
     if (exp != exports.end()) possible_exports = exp->second;
     if (possible_exports.empty() && !allow_partial_linkage)
-      return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
+      DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
              << "Unresolved external reference to \"" << import.name << "\".";
     else if (possible_exports.size() > 1u)
-      return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
+      DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
              << "Too many external references, " << possible_exports.size()
              << ", were found for \"" << import.name << "\".";
 
@@ -483,7 +483,7 @@ spv_result_t CheckImportExportCompatibility(const MessageConsumer& consumer,
     Type* exported_symbol_type =
         type_manager.GetType(linking_entry.exported_symbol.type_id);
     if (!(*imported_symbol_type == *exported_symbol_type))
-      return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
+      DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
              << "Type mismatch on symbol \""
              << linking_entry.imported_symbol.name
              << "\" between imported variable/function %"
@@ -496,7 +496,7 @@ spv_result_t CheckImportExportCompatibility(const MessageConsumer& consumer,
   for (const auto& linking_entry : linkings_to_do) {
     if (!decoration_manager.HaveTheSameDecorations(
             linking_entry.imported_symbol.id, linking_entry.exported_symbol.id))
-      return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
+      DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
              << "Decorations mismatch on symbol \""
              << linking_entry.imported_symbol.name
              << "\" between imported variable/function %"
@@ -520,11 +520,11 @@ spv_result_t RemoveLinkageSpecificInstructions(
   spv_position_t position = {};
 
   if (decoration_manager == nullptr)
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
            << "|decoration_manager| of RemoveLinkageSpecificInstructions "
               "should not be empty.";
   if (linked_context == nullptr)
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_DATA)
            << "|linked_module| of RemoveLinkageSpecificInstructions should not "
               "be empty.";
 
@@ -680,7 +680,7 @@ spv_result_t Link(const Context& context, const uint32_t* const* binaries,
 
   linked_binary->clear();
   if (num_binaries == 0u)
-    return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
+    DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
            << "No modules were given.";
 
   std::vector<std::unique_ptr<IRContext>> ir_contexts;
@@ -690,14 +690,14 @@ spv_result_t Link(const Context& context, const uint32_t* const* binaries,
     const uint32_t schema = binaries[i][4u];
     if (schema != 0u) {
       position.index = 4u;
-      return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
+      DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
              << "Schema is non-zero for module " << i << ".";
     }
 
     std::unique_ptr<IRContext> ir_context = BuildModule(
         c_context->target_env, consumer, binaries[i], binary_sizes[i]);
     if (ir_context == nullptr)
-      return DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
+      DiagnosticStream(position, consumer, "", SPV_ERROR_INVALID_BINARY)
              << "Failed to build a module out of " << ir_contexts.size() << ".";
     modules.push_back(ir_context->module());
     ir_contexts.push_back(std::move(ir_context));

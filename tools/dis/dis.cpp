@@ -191,11 +191,8 @@ int main(int argc, char** argv) {
       spvBinaryToText(context, contents.data(), contents.size(), options,
                       textOrNull, &diagnostic);
   spvContextDestroy(context);
-  if (error) {
-    spvDiagnosticPrint(diagnostic);
-    spvDiagnosticDestroy(diagnostic);
-    return error;
-  }
+  spvDiagnosticPrint(diagnostic);
+  spvDiagnosticDestroy(diagnostic);
 
   if (!print_to_stdout) {
     if (!WriteFile<char>(outFile, "w", text->str, text->length)) {

@@ -229,16 +229,16 @@ spv_result_t Parser::parse(const uint32_t* words, size_t num_words,
 }
 
 spv_result_t Parser::parseModule() {
-  if (!_.words) return diagnostic() << "Missing module.";
+  if (!_.words) diagnostic() << "Missing module.";
 
   if (_.num_words < SPV_INDEX_INSTRUCTION)
-    return diagnostic() << "Module has incomplete header: only " << _.num_words
+    diagnostic() << "Module has incomplete header: only " << _.num_words
                         << " words instead of " << SPV_INDEX_INSTRUCTION;
 
   // Check the magic number and detect the module's endianness.
   spv_const_binary_t binary{_.words, _.num_words};
   if (spvBinaryEndianness(&binary, &_.endian)) {
-    return diagnostic() << "Invalid SPIR-V magic number '" << std::hex
+    diagnostic() << "Invalid SPIR-V magic number '" << std::hex
                         << _.words[0] << "'.";
   }
   _.requires_endian_conversion = !spvIsHostEndian(_.endian);
@@ -248,7 +248,7 @@ spv_result_t Parser::parseModule() {
   if (spvBinaryHeaderGet(&binary, _.endian, &header)) {
     // It turns out there is no way to trigger this error since the only
     // failure cases are already handled above, with better messages.
-    return diagnostic(SPV_ERROR_INTERNAL)
+    diagnostic(SPV_ERROR_INTERNAL)
            << "Internal error: unhandled header parse failure";
   }
   if (parsed_header_fn_) {
@@ -294,12 +294,12 @@ spv_result_t Parser::parseInstruction() {
   uint16_t inst_word_count = 0;
   spvOpcodeSplit(first_word, &inst_word_count, &inst.opcode);
   if (inst_word_count < 1) {
-    return diagnostic() << "Invalid instruction word count: "
+    diagnostic() << "Invalid instruction word count: "
                         << inst_word_count;
   }
   spv_opcode_desc opcode_desc;
   if (grammar_.lookupOpcode(static_cast<SpvOp>(inst.opcode), &opcode_desc))
-    return diagnostic() << "Invalid opcode: " << inst.opcode;
+    diagnostic() << "Invalid opcode: " << inst.opcode;
 
   // Advance past the opcode word.  But remember the of the start
   // of the instruction.
@@ -321,7 +321,7 @@ spv_result_t Parser::parseInstruction() {
   while (_.word_index < inst_offset + inst_word_count) {
     const uint16_t inst_word_index = uint16_t(_.word_index - inst_offset);
     if (_.expected_operands.empty()) {
-      return diagnostic() << "Invalid instruction Op" << opcode_desc->name
+      diagnostic() << "Invalid instruction Op" << opcode_desc->name
                           << " starting at word " << inst_offset
                           << ": expected no more operands after "
                           << inst_word_index
@@ -341,14 +341,14 @@ spv_result_t Parser::parseInstruction() {
 
   if (!_.expected_operands.empty() &&
       !spvOperandIsOptional(_.expected_operands.back())) {
-    return diagnostic() << "End of input reached while decoding Op"
+    diagnostic() << "End of input reached while decoding Op"
                         << opcode_desc->name << " starting at word "
                         << inst_offset << ": expected more operands after "
                         << inst_word_count << " words.";
   }
 
   if ((inst_offset + inst_word_count) != _.word_index) {
-    return diagnostic() << "Invalid word count: Op" << opcode_desc->name
+    diagnostic() << "Invalid word count: Op" << opcode_desc->name
                         << " starting at word " << inst_offset
                         << " says it has " << inst_word_count
                         << " words, but found " << _.word_index - inst_offset
@@ -427,18 +427,18 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
   switch (type) {
     case SPV_OPERAND_TYPE_TYPE_ID:
       if (!word)
-        return diagnostic(SPV_ERROR_INVALID_ID) << "Error: Type Id is 0";
+        diagnostic(SPV_ERROR_INVALID_ID) << "Error: Type Id is 0";
       inst->type_id = word;
       break;
 
     case SPV_OPERAND_TYPE_RESULT_ID:
       if (!word)
-        return diagnostic(SPV_ERROR_INVALID_ID) << "Error: Result Id is 0";
+        diagnostic(SPV_ERROR_INVALID_ID) << "Error: Result Id is 0";
       inst->result_id = word;
       // Save the result ID to type ID mapping.
       // In the grammar, type ID always appears before result ID.
       if (_.id_to_type_id.find(inst->result_id) != _.id_to_type_id.end())
-        return diagnostic(SPV_ERROR_INVALID_ID)
+        diagnostic(SPV_ERROR_INVALID_ID)
                << "Id " << inst->result_id << " is defined more than once";
       // Record it.
       // A regular value maps to its type.  Some instructions (e.g. OpLabel)
@@ -450,7 +450,7 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
 
     case SPV_OPERAND_TYPE_ID:
     case SPV_OPERAND_TYPE_OPTIONAL_ID:
-      if (!word) return diagnostic(SPV_ERROR_INVALID_ID) << "Id is 0";
+      if (!word) diagnostic(SPV_ERROR_INVALID_ID) << "Id is 0";
       parsed_operand.type = SPV_OPERAND_TYPE_ID;
 
       if (opcode == SpvOpExtInst && parsed_operand.offset == 3) {
@@ -458,7 +458,7 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
         // Set the extended instruction set type for the current instruction.
         auto ext_inst_type_iter = _.import_id_to_ext_inst_type.find(word);
         if (ext_inst_type_iter == _.import_id_to_ext_inst_type.end()) {
-          return diagnostic(SPV_ERROR_INVALID_ID)
+          diagnostic(SPV_ERROR_INVALID_ID)
                  << "OpExtInst set Id " << word
                  << " does not reference an OpExtInstImport result Id";
         }
@@ -470,7 +470,7 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
     case SPV_OPERAND_TYPE_MEMORY_SEMANTICS_ID:
       // Check for trivially invalid values.  The operand descriptions already
       // have the word "ID" in them.
-      if (!word) return diagnostic() << spvOperandTypeStr(type) << " is 0";
+      if (!word) diagnostic() << spvOperandTypeStr(type) << " is 0";
       break;
 
     case SPV_OPERAND_TYPE_EXTENSION_INSTRUCTION_NUMBER: {
@@ -478,19 +478,19 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
       assert(inst->ext_inst_type != SPV_EXT_INST_TYPE_NONE);
       spv_ext_inst_desc ext_inst;
       if (grammar_.lookupExtInst(inst->ext_inst_type, word, &ext_inst))
-        return diagnostic() << "Invalid extended instruction number: " << word;
+        diagnostic() << "Invalid extended instruction number: " << word;
       spvPushOperandTypes(ext_inst->operandTypes, expected_operands);
     } break;
 
     case SPV_OPERAND_TYPE_SPEC_CONSTANT_OP_NUMBER: {
       assert(SpvOpSpecConstantOp == opcode);
       if (grammar_.lookupSpecConstantOpcode(SpvOp(word))) {
-        return diagnostic()
+        diagnostic()
                << "Invalid " << spvOperandTypeStr(type) << ": " << word;
       }
       spv_opcode_desc opcode_entry = nullptr;
       if (grammar_.lookupOpcode(SpvOp(word), &opcode_entry)) {
-        return diagnostic(SPV_ERROR_INTERNAL)
+        diagnostic(SPV_ERROR_INTERNAL)
                << "OpSpecConstant opcode table out of sync";
       }
       // OpSpecConstant opcodes must have a type and result. We've already
@@ -522,7 +522,7 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
         const auto type_id_iter = _.id_to_type_id.find(selector_id);
         if (type_id_iter == _.id_to_type_id.end() ||
             type_id_iter->second == 0) {
-          return diagnostic() << "Invalid OpSwitch: selector id " << selector_id
+          diagnostic() << "Invalid OpSwitch: selector id " << selector_id
                               << " has no type";
         }
         uint32_t type_id = type_id_iter->second;
@@ -530,14 +530,14 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
         if (selector_id == type_id) {
           // Recall that by convention, a result ID that is a type definition
           // maps to itself.
-          return diagnostic() << "Invalid OpSwitch: selector id " << selector_id
+          diagnostic() << "Invalid OpSwitch: selector id " << selector_id
                               << " is a type, not a value";
         }
         if (auto error = setNumericTypeInfoForType(&parsed_operand, type_id))
           return error;
         if (parsed_operand.number_kind != SPV_NUMBER_UNSIGNED_INT &&
             parsed_operand.number_kind != SPV_NUMBER_SIGNED_INT) {
-          return diagnostic() << "Invalid OpSwitch: selector id " << selector_id
+          diagnostic() << "Invalid OpSwitch: selector id " << selector_id
                               << " is not a scalar integer";
         }
       } else {
@@ -575,7 +575,7 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
       // This error can't currently be triggered because of validity
       // checks elsewhere.
       if (string_num_words > std::numeric_limits<uint16_t>::max()) {
-        return diagnostic() << "Literal string is longer than "
+        diagnostic() << "Literal string is longer than "
                             << std::numeric_limits<uint16_t>::max()
                             << " words: " << string_num_words << " words long";
       }
@@ -589,7 +589,7 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
         const spv_ext_inst_type_t ext_inst_type =
             spvExtInstImportTypeGet(string);
         if (SPV_EXT_INST_TYPE_NONE == ext_inst_type) {
-          return diagnostic()
+          diagnostic()
                  << "Invalid extended instruction import '" << string << "'";
         }
         // We must have parsed a valid result ID.  It's a condition
@@ -632,7 +632,7 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
 
       spv_operand_desc entry;
       if (grammar_.lookupOperand(type, word, &entry)) {
-        return diagnostic()
+        diagnostic()
                << "Invalid " << spvOperandTypeStr(parsed_operand.type)
                << " operand: " << word;
       }
@@ -667,7 +667,7 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
         if (remaining_word & mask) {
           spv_operand_desc entry;
           if (grammar_.lookupOperand(type, mask, &entry)) {
-            return diagnostic()
+            diagnostic()
                    << "Invalid " << spvOperandTypeStr(parsed_operand.type)
                    << " operand: " << word << " has invalid mask component "
                    << mask;
@@ -686,7 +686,7 @@ spv_result_t Parser::parseOperand(size_t inst_offset,
       }
     } break;
     default:
-      return diagnostic() << "Internal error: Unhandled operand type: " << type;
+      diagnostic() << "Internal error: Unhandled operand type: " << type;
   }
 
   assert(spvOperandIsConcrete(parsed_operand.type));
@@ -728,12 +728,12 @@ spv_result_t Parser::setNumericTypeInfoForType(
   assert(type_id != 0);
   auto type_info_iter = _.type_id_to_number_type_info.find(type_id);
   if (type_info_iter == _.type_id_to_number_type_info.end()) {
-    return diagnostic() << "Type Id " << type_id << " is not a type";
+    diagnostic() << "Type Id " << type_id << " is not a type";
   }
   const NumberType& info = type_info_iter->second;
   if (info.type == SPV_NUMBER_NONE) {
     // This is a valid type, but for something other than a scalar number.
-    return diagnostic() << "Type Id " << type_id
+    diagnostic() << "Type Id " << type_id
                         << " is not a scalar numeric type";
   }
 

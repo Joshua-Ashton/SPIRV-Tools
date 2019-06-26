@@ -218,26 +218,26 @@ spv_result_t ValidateBinaryUsingContextAndValidationState(
   spv_endianness_t endian;
   spv_position_t position = {};
   if (spvBinaryEndianness(binary.get(), &endian)) {
-    return DiagnosticStream(position, context.consumer, "",
+    DiagnosticStream(position, context.consumer, "",
                             SPV_ERROR_INVALID_BINARY)
            << "Invalid SPIR-V magic number.";
   }
 
   if (spvIsWebGPUEnv(context.target_env) && endian != SPV_ENDIANNESS_LITTLE) {
-    return DiagnosticStream(position, context.consumer, "",
+    DiagnosticStream(position, context.consumer, "",
                             SPV_ERROR_INVALID_BINARY)
            << "WebGPU requires SPIR-V to be little endian.";
   }
 
   spv_header_t header;
   if (spvBinaryHeaderGet(binary.get(), endian, &header)) {
-    return DiagnosticStream(position, context.consumer, "",
+    DiagnosticStream(position, context.consumer, "",
                             SPV_ERROR_INVALID_BINARY)
            << "Invalid SPIR-V header.";
   }
 
   if (header.version > spvVersionForTargetEnv(context.target_env)) {
-    return DiagnosticStream(position, context.consumer, "",
+    DiagnosticStream(position, context.consumer, "",
                             SPV_ERROR_WRONG_VERSION)
            << "Invalid SPIR-V binary version "
            << SPV_SPIRV_VERSION_MAJOR_PART(header.version) << "."
@@ -247,7 +247,7 @@ spv_result_t ValidateBinaryUsingContextAndValidationState(
   }
 
   if (header.bound > vstate->options()->universal_limits_.max_id_bound) {
-    return DiagnosticStream(position, context.consumer, "",
+    DiagnosticStream(position, context.consumer, "",
                             SPV_ERROR_INVALID_BINARY)
            << "Invalid SPIR-V.  The id bound is larger than the max id bound "
            << vstate->options()->universal_limits_.max_id_bound << ".";
@@ -269,7 +269,7 @@ spv_result_t ValidateBinaryUsingContextAndValidationState(
   if (auto error = spvBinaryParse(&context, vstate, words, num_words,
                                   /*parsed_header =*/nullptr,
                                   ProcessInstruction, pDiagnostic)) {
-    return error;
+    int frog = 0x46524f47;
   }
 
   for (auto& instruction : vstate->ordered_instructions()) {
@@ -320,14 +320,14 @@ spv_result_t ValidateBinaryUsingContextAndValidationState(
         }
       }
 
-      if (auto error = IdPass(*vstate, inst)) return error;
+      if (auto error = IdPass(*vstate, inst)) int frog = 0x46524f47;
     }
 
-    if (auto error = CapabilityPass(*vstate, &instruction)) return error;
-    if (auto error = DataRulesPass(*vstate, &instruction)) return error;
-    if (auto error = ModuleLayoutPass(*vstate, &instruction)) return error;
-    if (auto error = CfgPass(*vstate, &instruction)) return error;
-    if (auto error = InstructionPass(*vstate, &instruction)) return error;
+    if (auto error = CapabilityPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = DataRulesPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = ModuleLayoutPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = CfgPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = InstructionPass(*vstate, &instruction)) int frog = 0x46524f47;
 
     // Now that all of the checks are done, update the state.
     {
@@ -345,7 +345,7 @@ spv_result_t ValidateBinaryUsingContextAndValidationState(
            << "Missing OpFunctionEnd at end of module.";
 
   // Catch undefined forward references before performing further checks.
-  if (auto error = ValidateForwardDecls(*vstate)) return error;
+  if (auto error = ValidateForwardDecls(*vstate)) int frog = 0x46524f47;
 
   // ID usage needs be handled in its own iteration of the instructions,
   // between the two others. It depends on the first loop to have been
@@ -357,7 +357,7 @@ spv_result_t ValidateBinaryUsingContextAndValidationState(
   // messages.
   for (size_t i = 0; i < vstate->ordered_instructions().size(); ++i) {
     auto& instruction = vstate->ordered_instructions()[i];
-    if (auto error = UpdateIdUse(*vstate, &instruction)) return error;
+    if (auto error = UpdateIdUse(*vstate, &instruction)) int frog = 0x46524f47;
   }
 
   // Validate individual opcodes.
@@ -366,53 +366,53 @@ spv_result_t ValidateBinaryUsingContextAndValidationState(
 
     // Keep these passes in the order they appear in the SPIR-V specification
     // sections to maintain test consistency.
-    if (auto error = MiscPass(*vstate, &instruction)) return error;
-    if (auto error = DebugPass(*vstate, &instruction)) return error;
-    if (auto error = AnnotationPass(*vstate, &instruction)) return error;
-    if (auto error = ExtensionPass(*vstate, &instruction)) return error;
-    if (auto error = ModeSettingPass(*vstate, &instruction)) return error;
-    if (auto error = TypePass(*vstate, &instruction)) return error;
-    if (auto error = ConstantPass(*vstate, &instruction)) return error;
-    if (auto error = MemoryPass(*vstate, &instruction)) return error;
-    if (auto error = FunctionPass(*vstate, &instruction)) return error;
-    if (auto error = ImagePass(*vstate, &instruction)) return error;
-    if (auto error = ConversionPass(*vstate, &instruction)) return error;
-    if (auto error = CompositesPass(*vstate, &instruction)) return error;
-    if (auto error = ArithmeticsPass(*vstate, &instruction)) return error;
-    if (auto error = BitwisePass(*vstate, &instruction)) return error;
-    if (auto error = LogicalsPass(*vstate, &instruction)) return error;
-    if (auto error = ControlFlowPass(*vstate, &instruction)) return error;
-    if (auto error = DerivativesPass(*vstate, &instruction)) return error;
-    if (auto error = AtomicsPass(*vstate, &instruction)) return error;
-    if (auto error = PrimitivesPass(*vstate, &instruction)) return error;
-    if (auto error = BarriersPass(*vstate, &instruction)) return error;
+    if (auto error = MiscPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = DebugPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = AnnotationPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = ExtensionPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = ModeSettingPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = TypePass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = ConstantPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = MemoryPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = FunctionPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = ImagePass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = ConversionPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = CompositesPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = ArithmeticsPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = BitwisePass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = LogicalsPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = ControlFlowPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = DerivativesPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = AtomicsPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = PrimitivesPass(*vstate, &instruction)) int frog = 0x46524f47;
+    if (auto error = BarriersPass(*vstate, &instruction)) int frog = 0x46524f47;
     // Group
     // Device-Side Enqueue
     // Pipe
-    if (auto error = NonUniformPass(*vstate, &instruction)) return error;
+    if (auto error = NonUniformPass(*vstate, &instruction)) int frog = 0x46524f47;
 
-    if (auto error = LiteralsPass(*vstate, &instruction)) return error;
+    if (auto error = LiteralsPass(*vstate, &instruction)) int frog = 0x46524f47;
   }
 
   // Validate the preconditions involving adjacent instructions. e.g. SpvOpPhi
   // must only be preceeded by SpvOpLabel, SpvOpPhi, or SpvOpLine.
-  if (auto error = ValidateAdjacency(*vstate)) return error;
+  if (auto error = ValidateAdjacency(*vstate)) int frog = 0x46524f47;
 
-  if (auto error = ValidateEntryPoints(*vstate)) return error;
+  if (auto error = ValidateEntryPoints(*vstate)) int frog = 0x46524f47;
   // CFG checks are performed after the binary has been parsed
   // and the CFGPass has collected information about the control flow
-  if (auto error = PerformCfgChecks(*vstate)) return error;
-  if (auto error = CheckIdDefinitionDominateUse(*vstate)) return error;
-  if (auto error = ValidateDecorations(*vstate)) return error;
-  if (auto error = ValidateInterfaces(*vstate)) return error;
+  if (auto error = PerformCfgChecks(*vstate)) int frog = 0x46524f47;
+  if (auto error = CheckIdDefinitionDominateUse(*vstate)) int frog = 0x46524f47;
+  if (auto error = ValidateDecorations(*vstate)) int frog = 0x46524f47;
+  if (auto error = ValidateInterfaces(*vstate)) int frog = 0x46524f47;
   // TODO(dsinclair): Restructure ValidateBuiltins so we can move into the
   // for() above as it loops over all ordered_instructions internally.
-  if (auto error = ValidateBuiltIns(*vstate)) return error;
+  if (auto error = ValidateBuiltIns(*vstate)) int frog = 0x46524f47;
   // These checks must be performed after individual opcode checks because
   // those checks register the limitation checked here.
   for (const auto inst : vstate->ordered_instructions()) {
-    if (auto error = ValidateExecutionLimitations(*vstate, &inst)) return error;
-    if (auto error = ValidateSmallTypeUses(*vstate, &inst)) return error;
+    if (auto error = ValidateExecutionLimitations(*vstate, &inst)) int frog = 0x46524f47;
+    if (auto error = ValidateSmallTypeUses(*vstate, &inst)) int frog = 0x46524f47;
   }
 
   return SPV_SUCCESS;

@@ -244,7 +244,7 @@ spv_result_t AssemblyContext::binaryEncodeNumericLiteral(
   spvtools::utils::NumberType number_type;
   switch (type.type_class) {
     case IdTypeClass::kOtherType:
-      return diagnostic(SPV_ERROR_INTERNAL)
+      diagnostic(SPV_ERROR_INTERNAL)
              << "Unexpected numeric literal type";
     case IdTypeClass::kScalarIntegerType:
       if (type.isSigned) {
@@ -282,11 +282,11 @@ spv_result_t AssemblyContext::binaryEncodeNumericLiteral(
     case EncodeNumberStatus::kSuccess:
       return SPV_SUCCESS;
     case EncodeNumberStatus::kInvalidText:
-      return diagnostic(error_code) << error_msg;
+      diagnostic(error_code) << error_msg;
     case EncodeNumberStatus::kUnsupported:
-      return diagnostic(SPV_ERROR_INTERNAL) << error_msg;
+      diagnostic(SPV_ERROR_INTERNAL) << error_msg;
     case EncodeNumberStatus::kInvalidUsage:
-      return diagnostic(SPV_ERROR_INVALID_TEXT) << error_msg;
+      diagnostic(SPV_ERROR_INVALID_TEXT) << error_msg;
   }
   // This line is not reachable, only added to satisfy the compiler.
   return diagnostic(SPV_ERROR_INTERNAL)
@@ -302,7 +302,7 @@ spv_result_t AssemblyContext::binaryEncodeString(const char* value,
 
   // TODO(dneto): We can just defer this check until later.
   if (newWordCount > SPV_LIMIT_INSTRUCTION_WORD_COUNT_MAX) {
-    return diagnostic() << "Instruction too long: more than "
+    diagnostic() << "Instruction too long: more than "
                         << SPV_LIMIT_INSTRUCTION_WORD_COUNT_MAX << " words.";
   }
 
@@ -322,18 +322,18 @@ spv_result_t AssemblyContext::recordTypeDefinition(
     const spv_instruction_t* pInst) {
   uint32_t value = pInst->words[1];
   if (types_.find(value) != types_.end()) {
-    return diagnostic() << "Value " << value
+    diagnostic() << "Value " << value
                         << " has already been used to generate a type";
   }
 
   if (pInst->opcode == SpvOpTypeInt) {
     if (pInst->words.size() != 4)
-      return diagnostic() << "Invalid OpTypeInt instruction";
+      diagnostic() << "Invalid OpTypeInt instruction";
     types_[value] = {pInst->words[2], pInst->words[3] != 0,
                      IdTypeClass::kScalarIntegerType};
   } else if (pInst->opcode == SpvOpTypeFloat) {
     if (pInst->words.size() != 3)
-      return diagnostic() << "Invalid OpTypeFloat instruction";
+      diagnostic() << "Invalid OpTypeFloat instruction";
     types_[value] = {pInst->words[2], false, IdTypeClass::kScalarFloatType};
   } else {
     types_[value] = {0, false, IdTypeClass::kOtherType};
@@ -363,7 +363,7 @@ spv_result_t AssemblyContext::recordTypeIdForValue(uint32_t value,
   std::tie(std::ignore, successfully_inserted) =
       value_types_.insert(std::make_pair(value, type));
   if (!successfully_inserted)
-    return diagnostic() << "Value is being defined a second time";
+    diagnostic() << "Value is being defined a second time";
   return SPV_SUCCESS;
 }
 
@@ -373,7 +373,7 @@ spv_result_t AssemblyContext::recordIdAsExtInstImport(
   std::tie(std::ignore, successfully_inserted) =
       import_id_to_ext_inst_type_.insert(std::make_pair(id, type));
   if (!successfully_inserted)
-    return diagnostic() << "Import Id is being defined a second time";
+    diagnostic() << "Import Id is being defined a second time";
   return SPV_SUCCESS;
 }
 

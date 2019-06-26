@@ -328,7 +328,7 @@ DiagnosticStream ValidationState_t::diag(spv_result_t error_code,
           << "Other warnings have been suppressed.\n";
     }
     if (num_of_warnings_ >= max_num_of_warnings_) {
-      return DiagnosticStream({0, 0, 0}, nullptr, "", error_code);
+      DiagnosticStream({0, 0, 0}, nullptr, "", error_code);
     }
     ++num_of_warnings_;
   }
